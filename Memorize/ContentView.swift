@@ -7,62 +7,121 @@
 
 import SwiftUI
 
+enum MemorizeTheme {
+  case halloween
+  case cars
+  case animals
+  
+  func getTitle() -> String {
+    switch self {
+    case .halloween: return "Halloween"
+    case .cars: return "Cars"
+    case .animals: return "Animals"
+    }
+  }
+  
+  func getEmojis() -> [String] {
+    switch self {
+    case .halloween:
+      let halloweenArray = ["👻", "🎃", "🌞", "🌚", "👩‍🎤", "🥶", "🤴"]
+      let randomPairsCount = Int.random(in: 4...halloweenArray.count)
+      let shuffledCards = Array(halloweenArray.shuffled()[0..<randomPairsCount])
+      return (shuffledCards + shuffledCards).shuffled()
+    case .cars:
+      let carsArray = ["🚗", "🚕", "🚙", "🚌", "🚎"]
+      let randomPairsCount = Int.random(in: 4...carsArray.count)
+      let shuffledCards = Array(carsArray.shuffled()[0..<randomPairsCount])
+      return (shuffledCards + shuffledCards).shuffled()
+    case .animals:
+      let animalsArray = ["🐿️", "🐝", "🐯", "🐸", "🐊"]
+      let randomPairsCount = Int.random(in: 4...animalsArray.count)
+      let shuffledCards = Array(animalsArray.shuffled()[0..<randomPairsCount])
+      return (shuffledCards + shuffledCards).shuffled()
+    }
+  }
+  
+  func getImageName() -> String {
+    switch self {
+    case .halloween: return "line.3.crossed.swirl.circle"
+    case .cars: return "car"
+    case .animals: return "poweroutlet.type.k.fill"
+    }
+  }
+  
+  func getThemeColor() -> Color {
+    switch self {
+    case .halloween: return .orange
+    case .cars: return .blue
+    case .animals: return .green
+    }
+  }
+  
+}
+
 struct ContentView: View {
-  let emojis = ["👻", "🎃", "💡", "🥹", "🌞", "🐸", "🐊", "🌚", "👩‍🎤", "🥶", "🤴", "🐿️", "🐝", "🐯"]
+  @State var emojis = ["👻", "🎃", "🌞", "🌚"]
+  @State var themeColor = Color.orange
   @State var cardCount: Int = 4
+
+  @State var memorizeTheme: MemorizeTheme = .halloween {
+    didSet {
+      emojis = memorizeTheme.getEmojis()
+      themeColor = memorizeTheme.getThemeColor()
+    }
+  }
+  
     var body: some View {
       VStack {
+        Text("Memorize!")
+          .font(.title)
+          .fontWeight(.bold)
         ScrollView {
           cards
         }
         Spacer()
-        cardCountAdjusters
+        themeChangingButtons
       }
       .padding()
     }
   
   var cards: some View {
-    LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-      ForEach(0..<cardCount, id: \.self) { index in
+    LazyVGrid(columns: [GridItem(.adaptive(minimum: 60))]) {
+      ForEach(0..<emojis.count, id: \.self) { index in
         CardView(content: emojis[index])
           .aspectRatio(2/3, contentMode: .fit)
       }
     }
-    .foregroundStyle(.orange)
+    .foregroundStyle(themeColor)
   }
   
-  var cardCountAdjusters: some View {
+  var themeChangingButtons: some View {
     HStack {
-      cardRemover
+      themeChoosingButton(withTheme: .halloween)
       Spacer()
-      cardAdder
+      themeChoosingButton(withTheme: .cars)
+      Spacer()
+      themeChoosingButton(withTheme: .animals)
     }
     .imageScale(.large)
-    .font(.largeTitle)
+    .font(.headline)
   }
   
-  func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
+  func themeChoosingButton(withTheme theme: MemorizeTheme) -> some View {
     Button {
-      cardCount += offset
+      memorizeTheme = theme
     } label: {
-      Image(systemName: symbol)
+      VStack(alignment: .center) {
+        Image(systemName: theme.getImageName())
+        Text(theme.getTitle())
+      }
     }
-    .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
-  }
-  
-  var cardRemover: some View {
-    return cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus")
-  }
-  
-  var cardAdder: some View {
-    return cardCountAdjuster(by: 1, symbol: "rectangle.stack.badge.plus")
   }
   
 }
 
 struct CardView: View {
   let content: String
-  @State var isFaceUp: Bool = true
+  @State var isFaceUp: Bool = false
   
   var body: some View {
     ZStack {
@@ -86,3 +145,4 @@ struct CardView: View {
 #Preview {
     ContentView()
 }
+
